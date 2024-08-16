@@ -43,32 +43,71 @@ async function run() {
         //   pagination
 
         app.get('/count', async (req, res) => {
-            const count = await productCollection.countDocuments()
-            res.send({ count })
-        })
-
+            const { brand, category, minPrice, maxPrice } = req.query;
+        
+            const query = {};
+        
+            if (brand) {
+                query.brand_name = { $in: brand.split(',') };
+            }
+            if (category) {
+                query.category_name = { $in: category.split(',') };
+            }
+            if (minPrice && maxPrice) {
+                query.price = { $gte: parseInt(minPrice), $lte: parseInt(maxPrice) };
+            }
+        
+            try {
+                const count = await productCollection.countDocuments(query);
+                res.send({ count });
+            } catch (error) {
+                res.status(500).send({ error: 'Error fetching count' });
+            }
+        });
+        
+        // Route to get paginated and filtered products
         app.get('/pagination', async (req, res) => {
             const size = parseInt(req.query.size);
             const page = parseInt(req.query.page) - 1;
-            //for filter
-            console.log(size, page);
-            const { filter } = req.query
-      
-            let items
-      
+        
+            // Filters
+            const { brand, category, minPrice, maxPrice, filter } = req.query;
+        
+            const query = {};
+        
+            if (brand) {
+                query.brand_name = { $in: brand.split(',') };
+            }
+        
+            if (category) {
+                query.category_name = { $in: category.split(',') };
+            }
+        
+            if (minPrice && maxPrice) {
+                query.price = { $gte: parseInt(minPrice), $lte: parseInt(maxPrice) };
+            }
+        
             if (filter) {
-              const namesArray = filter.split(',')
-              items = await productCollection.find({ brand_name: { $in: namesArray } }).skip(page * size).limit(size).toArray();
+                query.name = { $regex: filter, $options: 'i' }; // Case-insensitive search
             }
-            else {
-              items = await productCollection.find({}).skip(page * size).limit(size).toArray()
-      
+        
+            try {
+                // Fetch paginated and filtered data
+                const items = await productCollection.find(query)
+                    .skip(page * size)
+                    .limit(size)
+                    .toArray();
+        
+                // Get the total count for pagination
+                const totalCount = await productCollection.countDocuments(query);
+        
+                // Send both items and totalCount as a response
+                res.send({ products: items, totalCount });
+            } catch (error) {
+                res.status(500).send({ error: 'Error fetching products' });
             }
-      
-      
-            res.send(items)
-          })
-      
+        });
+
 
 
         // Send a ping to confirm a successful connection
