@@ -88,7 +88,7 @@ async function run() {
             }
         
             if (filter) {
-                query.name = { $regex: filter, $options: 'i' }; // Case-insensitive search
+                query.name = { $regex: filter, $options: 'i' }; // Case-insensitive searc
             }
         
             try {
