@@ -3,10 +3,19 @@ const cors = require('cors')
 const app = express()
 const { MongoClient, ServerApiVersion } = require('mongodb');
 require('dotenv').config()
+
 const port = process.env.PORT || 5000
 
 // middleware
-app.use(cors())
+app.use(cors(
+    {
+        origin: [
+            "http://localhost:5173",
+            "https://frozen-cpu.web.app",
+            "https://frozen-cpu.firebaseapp.com"
+        ]
+    }
+))
 app.use(express.json())
 
 
@@ -44,9 +53,9 @@ async function run() {
 
         app.get('/count', async (req, res) => {
             const { brand, category, minPrice, maxPrice } = req.query;
-        
+
             const query = {};
-        
+
             if (brand) {
                 query.brand_name = { $in: brand.split(',') };
             }
@@ -56,56 +65,52 @@ async function run() {
             if (minPrice && maxPrice) {
                 query.price = { $gte: parseInt(minPrice), $lte: parseInt(maxPrice) };
             }
-        
-            try {
+
+ 
                 const count = await productCollection.countDocuments(query);
                 res.send({ count });
-            } catch (error) {
-                res.status(500).send({ error: 'Error fetching count' });
-            }
+         
         });
-        
+
         // Route to get paginated and filtered products
         app.get('/pagination', async (req, res) => {
             const size = parseInt(req.query.size);
             const page = parseInt(req.query.page) - 1;
-        
+
             // Filters
             const { brand, category, minPrice, maxPrice, filter } = req.query;
-        
+
             const query = {};
-        
+
             if (brand) {
                 query.brand_name = { $in: brand.split(',') };
             }
-        
+
             if (category) {
                 query.category_name = { $in: category.split(',') };
             }
-        
+
             if (minPrice && maxPrice) {
                 query.price = { $gte: parseInt(minPrice), $lte: parseInt(maxPrice) };
             }
-        
+
             if (filter) {
                 query.name = { $regex: filter, $options: 'i' }; // Case-insensitive searc
             }
-        
-            try {
+
+      
                 // Fetch paginated and filtered data
                 const items = await productCollection.find(query)
                     .skip(page * size)
                     .limit(size)
                     .toArray();
-        
+
                 // Get the total count for pagination
                 const totalCount = await productCollection.countDocuments(query);
-        
+
                 // Send both items and totalCount as a response
                 res.send({ products: items, totalCount });
-            } catch (error) {
-                res.status(500).send({ error: 'Error fetching products' });
-            }
+           
         });
 
 
@@ -115,7 +120,7 @@ async function run() {
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
-        // await client.close();
+        await client.close();
     }
 }
 run().catch(console.dir);
