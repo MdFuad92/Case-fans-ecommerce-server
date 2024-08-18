@@ -1,4 +1,4 @@
-# FROZENCPU-Server
+# FROZENCPU-SERVER
 Project-Overview:  An e-commerce website on pc cooling fans 
 
 Client-side: https://github.com/MdFuad92/Case-fans-ecommerce-client
