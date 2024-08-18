@@ -1,7 +1,7 @@
-# FROZENCPU
+# FROZENCPU-Server
 Project-Overview:  An e-commerce website on pc cooling fans 
 
-Client-side: https://frozen-cpu.web.app/
+Client-side: https://github.com/MdFuad92/Case-fans-ecommerce-client
 
  **Features**:
 - implemented pagination
